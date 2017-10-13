@@ -2,6 +2,8 @@
 #include <QApplication>
 #include "qcustomplot.h"
 #include "unistd.h"
+#include "constdefine.h"
+
 
 int main(int argc, char *argv[])
 {

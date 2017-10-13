@@ -8,6 +8,12 @@
 #include "QPushButton"
 #include "QFileDialog"
 #include "QVector"
+#include <QTcpSocket>
+#include <QString>
+#include <QDataStream>
+#include <QByteArray>
+#include <QTimer>
+#include <QTimerEvent>
 
 namespace Ui {
 class MainWindow;
@@ -30,17 +36,29 @@ private:
     Ui::MainWindow *ui;
     QWidget *cenWidget;
     QTextEdit *txtSystemStatus, *txtSearchResult, *txtMessage;
+    QPushButton *bFile, *bSwitch, *bBatch, *bConn,*bSim,*bSearch,*bClean,*bClose;
     QLineEdit *searchText;
     QCustomPlot *plotArea;
     QFileDialog *fileDialog;
     QVector<QCPBars*> bars;
+    QTcpSocket *cli_socket;
+    QTimer *timer;
+
 
 public slots:
     void fileBtnOnClick();
     void switchBtnOnClick();
-    void startBtnOnClick();
     void simBtnOnClick();
     void searchBtnOnClick();
+    void batchQueryBtnOnClick();
+    void connBtnOnClick();
+    void cleanBtnOnClick();
+    void closeBtnOnClick();
+
+
+    void readyread();
+    void connectFinish();
+    void flushState();
 };
 
 #endif // MAINWINDOW_H

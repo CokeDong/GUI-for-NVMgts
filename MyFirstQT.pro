@@ -17,8 +17,11 @@ SOURCES += main.cpp\
     qcustomplot.cpp
 
 HEADERS  += mainwindow.h \
-    qcustomplot.h
+    qcustomplot.h \
+    constdefine.h
 
 FORMS    += mainwindow.ui
 
 OTHER_FILES +=
+
+QT += network
