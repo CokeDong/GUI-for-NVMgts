@@ -309,7 +309,7 @@ void MainWindow:: batchQueryBtnOnClick() //Batch Query
 void MainWindow:: simBtnOnClick(){ //Start Simulation
     // Simulation
     QString msg;
-    msg = msg + "6;" + ";0;";
+    msg = msg + "6;" + QString::number(chooseDataSize) + ";0;";
     char *sendBuff;
     QByteArray ba = msg.toLatin1();
     sendBuff = ba.data();
@@ -332,7 +332,7 @@ void MainWindow:: searchBtnOnClick(){ //Single Query
 }
 
 void MainWindow:: connBtnOnClick(){
-    this->cli_socket->connectToHost("127.0.0.1",4081, QTcpSocket::ReadWrite);
+    this->cli_socket->connectToHost("127.0.0.1",4080, QTcpSocket::ReadWrite);
 }
 void MainWindow:: cleanBtnOnClick(){ //clean
     // Clean Data
@@ -482,8 +482,10 @@ void MainWindow::readyread(){
             QStringList dataInTCPList = infos[1].split(':');
             int numTrajs = dataInTCPList[0].toInt();
             int numPoints = dataInTCPList[1].toInt();
-            int queryID = dataInTCPList[2].toInt();
-            int runningTask = dataInTCPList[3].toInt();
+            QChar systemModeChar = dataInTCPList[2][0];
+            systemMode = systemModeChar.toLatin1();
+            int queryID = dataInTCPList[3].toInt();
+            int runningTask = dataInTCPList[4].toInt();
             numTrajSys = numTrajs;
             numPointSys = numPoints;
             queryIDNow = queryID;
