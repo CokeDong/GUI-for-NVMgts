@@ -259,7 +259,7 @@ void MainWindow:: fileBtnOnClick() //Load File
     qDebug() << fileName;      //Test if file name is correct.
     */
     QString msg;
-    msg = "0;" + QString::number(chooseDataSize) + ";0;";
+    msg = "0;" + QString::number(chooseDataSize) + ";0;|";
     char *sendBuff;
     QByteArray ba = msg.toLatin1();
     sendBuff = ba.data();
@@ -278,7 +278,7 @@ void MainWindow:: switchBtnOnClick() //Switch Mode
     updatePlot(datax, datay2, 1);
     // switch mode
     QString msg;
-    msg = msg + "3;" + QString(chooseMode) + ";0;";
+    msg = msg + "3;" + QString(chooseMode) + ";0;|";
     char *sendBuff;
     QByteArray ba = msg.toLatin1();
     sendBuff = ba.data();
@@ -297,7 +297,7 @@ void MainWindow:: batchQueryBtnOnClick() //Batch Query
     updatePlot(datax, datay2, 1);
     // Batch Query
     QString msg;
-    msg = msg + "1;" + "whichBatch" + ";0;"; // whichBatch need to be added
+    msg = msg + "1;" + "whichBatch" + ";0;|"; // whichBatch need to be added
     char *sendBuff;
     QByteArray ba = msg.toLatin1();
     sendBuff = ba.data();
@@ -309,7 +309,7 @@ void MainWindow:: batchQueryBtnOnClick() //Batch Query
 void MainWindow:: simBtnOnClick(){ //Start Simulation
     // Simulation
     QString msg;
-    msg = msg + "6;" + QString::number(chooseDataSize) + ";0;";
+    msg = msg + "6;" + QString::number(chooseDataSize) + ";0;|";
     char *sendBuff;
     QByteArray ba = msg.toLatin1();
     sendBuff = ba.data();
@@ -322,7 +322,7 @@ void MainWindow:: searchBtnOnClick(){ //Single Query
     // Single Query
     QString msg;
     QString MBRsearch = searchText->text();
-    msg = msg + "2;" + MBRsearch + ";0;";
+    msg = msg + "2;" + MBRsearch + ";0;|";
     char *sendBuff;
     QByteArray ba = msg.toLatin1();
     sendBuff = ba.data();
@@ -337,7 +337,7 @@ void MainWindow:: connBtnOnClick(){
 void MainWindow:: cleanBtnOnClick(){ //clean
     // Clean Data
     QString msg;
-    msg = msg + "5;" + ";0;";
+    msg = msg + "5;" + ";0;|";
     char *sendBuff;
     QByteArray ba = msg.toLatin1();
     sendBuff = ba.data();
@@ -349,7 +349,7 @@ void MainWindow:: cleanBtnOnClick(){ //clean
 void MainWindow:: closeBtnOnClick(){ //close
     // Clean Data
     QString msg;
-    msg = msg + "13;" + ";0;";
+    msg = msg + "13;" + ";0;|";
     char *sendBuff;
     QByteArray ba = msg.toLatin1();
     sendBuff = ba.data();
@@ -364,196 +364,221 @@ void MainWindow::connectFinish(){
 
 void MainWindow::readyread(){
     QString strRead = this->cli_socket->readAll();
-    QStringList infos;
-    infos = strRead.split(';');
-    //debug
-    qDebug()<<strRead;
-    //debug
-    int msgType = infos[0].toInt();
-    int finishFlag = infos[2].toInt();
-    switch(msgType){
-    case 0: // load
+    QStringList allMsg;
+    allMsg = strRead.split("|");
+    QList<QString>::iterator it = allMsg.begin(),itend = allMsg.end();
+    for(;it!=itend;it++)
     {
-        if(finishFlag == 1)
+        QStringList infos;
+        infos = (*it).split(';');
+        //debug
+        qDebug()<<(*it);
+        //debug
+        if(infos.size()<=1)
+            break;
+        int msgType = infos[0].toInt();
+        int finishFlag = infos[2].toInt();
+        switch(msgType){
+        case 0: // load
         {
-            QStringList msg;
-            QStringList dataInTCPList = infos[1].split(':');
-            int numTrajs = dataInTCPList[0].toInt();
-            int numPoints = dataInTCPList[1].toInt();
-            double loadTime = dataInTCPList[2].toDouble();
-            msg << "Data Loading Finished. "<< QString::number(numTrajs)<<"trajectories and "<<QString::number(numPoints)
-                << "points are loaded within "<< QString::number(loadTime)<<"s.";
-            txtMessage->append(msg.join(""));
-            runningTaskType = -1;
-        }
-        else
-        {
-            qDebug()<< "error in Load Data.\n";
-        }
-        break;
-    }
-    case 1: // batch
-    {
-        if(finishFlag == 1)
-        {
-            QStringList msg;
-            QStringList dataInTCPList = infos[1].split(':');
-            double loadTime = dataInTCPList[0].toDouble();
-            msg << "Batch Query is finished in" << QString::number(loadTime)<<"s.";
-            txtMessage->append(msg.join(""));
-            runningTaskType = -1;
-            // plot on figure .............
-            // under finishing.............
-        }
-        else
-        {
-            qDebug()<< "error in Batch Query.\n";
-        }
-        break;
-    }
-    case 2://single
-    {
-        if(finishFlag == 1)
-        {
-            QStringList msg;
-            QString allresult = infos[1];
-            QFile file("./resultSingleQuery.txt");
-            file.open(QIODevice::ReadWrite);
-            QTextStream out(&file);
-            out << allresult ;
-            out.flush();
-            file.close();
-            msg << "Single Query is finished. Results are stored in file.";
-            txtMessage->append(msg.join(""));
-            runningTaskType = -1;
-        }
-        else
-        {
-            qDebug()<< "error in Single Query.\n";
-        }
-        break;
-    }
-    case 3: //mode switch
-    {
-        if(finishFlag == 1)
-        {
-            QStringList msg;
-            QString modeStr = infos[1];
-            char mode;
-            mode = modeStr.at(0).toLatin1();
-            QString modeName;
-            switch(mode)
+            if(finishFlag == 1)
             {
-                case 'd':
+                QStringList msg;
+                QStringList dataInTCPList = infos[1].split(':');
+                int numTrajs = dataInTCPList[0].toInt();
+                int numPoints = dataInTCPList[1].toInt();
+                double loadTime = dataInTCPList[2].toDouble();
+                msg << "Data Loading Finished. "<< QString::number(numTrajs)<<"trajectories and "<<QString::number(numPoints)
+                    << "points are loaded within "<< QString::number(loadTime)<<"s.";
+                txtMessage->append(msg.join(""));
+                runningTaskType = -1;
+            }
+            else
+            {
+                qDebug()<< "error in Load Data.\n";
+            }
+            break;
+        }
+        case 1: // batch
+        {
+            if(finishFlag == 1)
+            {
+                QStringList msg;
+                QStringList dataInTCPList = infos[1].split(':');
+                double loadTime = dataInTCPList[0].toDouble();
+                msg << "Batch Query is finished in" << QString::number(loadTime)<<"s.";
+                txtMessage->append(msg.join(""));
+                runningTaskType = -1;
+                // plot on figure .............
+                // under finishing.............
+            }
+            else
+            {
+                qDebug()<< "error in Batch Query.\n";
+            }
+            break;
+        }
+        case 2://single
+        {
+            if(finishFlag == 1)
+            {
+                QStringList msg;
+                QString allresult = infos[1];
+                QFile file("./resultSingleQuery.txt");
+                file.open(QIODevice::ReadWrite);
+                QTextStream out(&file);
+                out << allresult ;
+                out.flush();
+                file.close();
+                msg << "Single Query is finished. Results are stored in file.";
+                txtMessage->append(msg.join(""));
+                runningTaskType = -1;
+            }
+            else
+            {
+                qDebug()<< "error in Single Query.\n";
+            }
+            break;
+        }
+        case 3: //mode switch
+        {
+            if(finishFlag == 1)
+            {
+                QStringList msg;
+                QString modeStr = infos[1];
+                char mode;
+                mode = modeStr.at(0).toLatin1();
+                QString modeName;
+                switch(mode)
                 {
-                modeName = "pure DRAM";
-                break;
+                    case 'd':
+                    {
+                    modeName = "pure DRAM";
+                    break;
+                    }
+                case 'h':
+                {
+                    modeName = "DRAM-NVM hybrid";
+                    break;
                 }
-            case 'h':
+                case 's':
+                {
+                    modeName = "pure NVM";
+                    break;
+                }
+                default:
+                {
+                    modeName = "N/A";
+                    break;
+                }
+                }
+                msg << "System is changed to" << modeName << "mode.";
+                runningTaskType = -1;
+                txtMessage->append(msg.join(""));
+            }
+            else
             {
-                modeName = "DRAM-NVM hybrid";
-                break;
+                qDebug()<< "error in Switch Mode.\n";
             }
-            case 's':
+            break;
+        }
+        case 4: // get state message
+        {
+            if(finishFlag == 1)
             {
-                modeName = "pure NVM";
-                break;
+                QStringList dataInTCPList = infos[1].split(':');
+                int numTrajs = dataInTCPList[0].toInt();
+                int numPoints = dataInTCPList[1].toInt();
+                QChar systemModeChar = dataInTCPList[2][0];
+                systemMode = systemModeChar.toLatin1();
+                int queryID = dataInTCPList[3].toInt();
+                int runningTask = dataInTCPList[4].toInt();
+                numTrajSys = numTrajs;
+                numPointSys = numPoints;
+                queryIDNow = queryID;
+                runningTaskType = runningTask;
             }
-            default:
+            else
             {
-                modeName = "N/A";
-                break;
+                qDebug()<< "error in Get Message.\n";
             }
+            break;
+        }
+        case 5: // clean
+        {
+            if(finishFlag == 1)
+            {
+                QStringList msg;
+                numTrajSys = 0;
+                numPointSys = 0;
+                queryIDNow = -1;
+                runningTaskType = -1;
+                msg << "Clean Successful.\n";
+                txtMessage->append(msg.join(""));
             }
-            msg << "System is changed to" << modeName << "mode.";
-            runningTaskType = -1;
-            txtMessage->append(msg.join(""));
+            else
+            {
+                qDebug()<< "error in Clean.\n";
+            }
+            break;
         }
-        else
+        case 6: // demo
         {
-            qDebug()<< "error in Switch Mode.\n";
+            if(finishFlag == 1)
+            {
+                QStringList msg;
+                QStringList dataInTCPList = infos[1].split(':');
+                double runningTime = dataInTCPList[0].toDouble();
+                int demoStage = dataInTCPList[1].toInt();
+                if(demoStage == 1)
+                {
+                    runningTaskType = 6;
+                    msg << "System Down. Waiting for restarting...\n";
+                    txtMessage->append(msg.join(""));
+                }
+                else if(demoStage == 2)
+                {
+                    runningTaskType = 6;
+                    msg << "System restarted. Start Recovery...\n";
+                    txtMessage->append(msg.join(""));
+                }
+                else if(demoStage == 3)
+                {
+                    runningTaskType = -1;
+                    msg << "Finish Demo. The Recovery Time is "
+                        << QString::number(runningTime) << " s under "
+                        << QString(systemMode) << " mode.\n";
+                    txtMessage->append(msg.join(""));
+                }
+                // plot on figure .............
+                // under finishing.............
+            }
+            else
+            {
+                qDebug()<< "error in Demo.\n";
+            }
+            break;
         }
-        break;
+        case 13: // close app
+        {
+            if(finishFlag == 1)
+            {
+                QStringList msg;
+                runningTaskType = -1;
+                msg << "GTS closed.\n";
+                txtMessage->append(msg.join(""));
+            }
+            else
+            {
+                qDebug()<< "error in Load Data.\n";
+            }
+            break;
+        }
+        default:
+            break;
+        }
     }
-    case 4: // get state message
-    {
-        if(finishFlag == 1)
-        {
-            QStringList dataInTCPList = infos[1].split(':');
-            int numTrajs = dataInTCPList[0].toInt();
-            int numPoints = dataInTCPList[1].toInt();
-            QChar systemModeChar = dataInTCPList[2][0];
-            systemMode = systemModeChar.toLatin1();
-            int queryID = dataInTCPList[3].toInt();
-            int runningTask = dataInTCPList[4].toInt();
-            numTrajSys = numTrajs;
-            numPointSys = numPoints;
-            queryIDNow = queryID;
-            runningTaskType = runningTask;
-        }
-        else
-        {
-            qDebug()<< "error in Get Message.\n";
-        }
-        break;
-    }
-    case 5: // clean
-    {
-        if(finishFlag == 1)
-        {
-            QStringList msg;
-            numTrajSys = 0;
-            numPointSys = 0;
-            queryIDNow = -1;
-            runningTaskType = -1;
-            msg << "Clean Successful.\n";
-            txtMessage->append(msg.join(""));
-        }
-        else
-        {
-            qDebug()<< "error in Clean.\n";
-        }
-        break;
-    }
-    case 6: // demo
-    {
-        if(finishFlag == 1)
-        {
-            QStringList msg;
-            QStringList dataInTCPList = infos[1].split(':');
-            double runningTime = dataInTCPList[0].toDouble();
-            runningTaskType = -1;
-            msg << "Finish Demo. The Recovery Time is "
-                << QString::number(runningTime) << " s under "
-                << QString(systemMode) << " mode.\n";
-            txtMessage->append(msg.join(""));
-            // plot on figure .............
-            // under finishing.............
-        }
-        else
-        {
-            qDebug()<< "error in Demo.\n";
-        }
-        break;
-    }
-    case 13: // close app
-    {
-        if(finishFlag == 1)
-        {
-            QStringList msg;
-            runningTaskType = -1;
-            msg << "GTS closed.\n";
-            txtMessage->append(msg.join(""));
-        }
-        else
-        {
-            qDebug()<< "error in Load Data.\n";
-        }
-        break;
-    }
-    default:
-        break;
-    }
+
 }
 
 void MainWindow::flushState(){
