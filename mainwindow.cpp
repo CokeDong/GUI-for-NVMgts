@@ -17,6 +17,12 @@ int numTrajSys=0,numPointSys=0,runningTaskType=-1,queryIDNow=-1;
 int chooseDataSize = 1;
 char chooseMode = 'h';
 char systemMode = 'h';
+QVector<double> datax = {1.5,3.5};
+QVector<double> datay1 = {0,0};
+QVector<double> datay2 = {0,0};
+QVector<double> datay3 = {0,0};
+QVector<int> testSampleNumBatch = {0,0,0};
+QVector<int> testSampleNumRecov = {0,0,0};
 
 using namespace::std;
 
@@ -51,8 +57,8 @@ MainWindow::MainWindow(QWidget *parent) :
     searchText = new QLineEdit(cenWidget);
     searchText->setPlaceholderText("Lon1,Lon2,Lat1,Lat2,");
 
-    QVector<QString> inames = QVector<QString>() << "item1" << "item2";
-    initPlot(2, 4, inames);
+    QVector<QString> inames = QVector<QString>() << "pure DRAM" << "DRAM-SCM" << "pure SCM";
+    initPlot(3, 2, inames);
 
     txtSystemStatus = new QTextEdit("txtSystemStatus", cenWidget);
     txtSystemStatus->setStyleSheet(CONSOLE_STYLE);
@@ -176,10 +182,10 @@ void MainWindow:: initPlot(int groupSize, int dataxSize, QVector<QString> itemNa
     plotArea = new QCustomPlot(cenWidget);
     // preset color R,G,B,transparency.
     // ONLY 2 BAR COLOR ARE SPECIFIED. ADD YOUR OWN COLOR IF YOUR GROUP SIZE IS LARGER THAN 2.
-    QVector<int> R = QVector<int>() << 10 << 10;
-    QVector<int> G = QVector<int>() << 140 << 100;
-    QVector<int> B = QVector<int>() << 70 << 50;
-    QVector<int> T = QVector<int>() << 160 << 70;
+    QVector<int> R = QVector<int>() << 10 << 10 << 10;
+    QVector<int> G = QVector<int>() << 140 << 100 << 60;
+    QVector<int> B = QVector<int>() << 70 << 50 << 30;
+    QVector<int> T = QVector<int>() << 160 << 70<< 120;
 
     // create and configure plottables:
     QCPBarsGroup *group = new QCPBarsGroup(plotArea);
@@ -238,7 +244,14 @@ void MainWindow:: initPlot(int groupSize, int dataxSize, QVector<QString> itemNa
     plotArea->rescaleAxes();
     //Set Axis Range
     plotArea->xAxis->setRange(0, 5);
-    plotArea->yAxis->setRange(0, 2);
+    plotArea->yAxis->setRange(0, 70);
+    QVector<double> ticks;
+    QVector<QString> labels;
+    ticks << 1.5 << 3.5;
+    labels << "Batch" << "Recovery";
+    QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+    textTicker->addTicks(ticks,labels);
+    plotArea->xAxis->setTicker(textTicker);
 }
 
 void MainWindow:: updatePlot(QVector<double> x, QVector<double> y, int barIndex)
@@ -271,11 +284,11 @@ void MainWindow:: fileBtnOnClick() //Load File
 
 void MainWindow:: switchBtnOnClick() //Switch Mode
 {
-    QVector<double> datax = QVector<double>() << 1 << 2 << 3 << 4;
-    QVector<double> datay1 = QVector<double>() << 0.6 << 0.5 << 0.3 << 0.15;
-    QVector<double> datay2 = QVector<double>() << 0.3 << 0.28 << 0.2 << 0.1;
-    updatePlot(datax, datay1, 0);
-    updatePlot(datax, datay2, 1);
+//    QVector<double> datax = QVector<double>() << 1 << 2 << 3 << 4;
+//    QVector<double> datay1 = QVector<double>() << 0.6 << 0.5 << 0.3 << 0.15;
+//    QVector<double> datay2 = QVector<double>() << 0.3 << 0.28 << 0.2 << 0.1;
+//    updatePlot(datax, datay1, 0);
+//    updatePlot(datax, datay2, 1);
     // switch mode
     QString msg;
     msg = msg + "3;" + QString(chooseMode) + ";0;|";
@@ -290,11 +303,11 @@ void MainWindow:: switchBtnOnClick() //Switch Mode
 
 void MainWindow:: batchQueryBtnOnClick() //Batch Query
 {
-    QVector<double> datax = QVector<double>() << 1 << 2 << 3 << 4;
-    QVector<double> datay1 = QVector<double>() << 1.6 << 1.5 << 1.3 << 1.15;
-    QVector<double> datay2 = QVector<double>() << 1.3 << 1.28 << 1.2 << 1.1;
-    updatePlot(datax, datay1, 0);
-    updatePlot(datax, datay2, 1);
+//    QVector<double> datax = QVector<double>() << 1 << 2 << 3 << 4;
+//    QVector<double> datay1 = QVector<double>() << 1.6 << 1.5 << 1.3 << 1.15;
+//    QVector<double> datay2 = QVector<double>() << 1.3 << 1.28 << 1.2 << 1.1;
+//    updatePlot(datax, datay1, 0);
+//    updatePlot(datax, datay2, 1);
     // Batch Query
     QString msg;
     msg = msg + "1;" + "whichBatch" + ";0;|"; // whichBatch need to be added
@@ -343,6 +356,18 @@ void MainWindow:: cleanBtnOnClick(){ //clean
     sendBuff = ba.data();
     this->cli_socket->write(sendBuff);
     runningTaskType = 5;
+    datay1[0] = 0;
+    datay1[1] = 0;
+    datay2[0] = 0;
+    datay2[1] = 0;
+    datay3[0] = 0;
+    datay3[1] = 0;
+    testSampleNumBatch[0] = 0;
+    testSampleNumBatch[1] = 0;
+    testSampleNumBatch[2] = 0;
+    testSampleNumRecov[0] = 0;
+    testSampleNumRecov[1] = 0;
+    testSampleNumRecov[2] = 0;
     qDebug() << msg;
 }
 
@@ -410,6 +435,28 @@ void MainWindow::readyread(){
                 txtMessage->append(msg.join(""));
                 runningTaskType = -1;
                 // plot on figure .............
+
+                int isInDemo = dataInTCPList[1].toInt();
+                if(isInDemo == 1)
+                {
+                    break;
+                }
+                switch (systemMode) {
+                case 'd':
+                    datay1[0] = (datay1[0]*testSampleNumBatch[0]+loadTime)/(++testSampleNumBatch[0]);
+                    updatePlot(datax, datay1, 0);
+                    break;
+                case 'h':
+                    datay2[0] = (datay2[0]*testSampleNumBatch[1]+loadTime)/(++testSampleNumBatch[1]);
+                    updatePlot(datax, datay2, 1);
+                    break;
+                case 's':
+                    datay3[0] = (datay3[0]*testSampleNumBatch[2]+loadTime)/(++testSampleNumBatch[2]);
+                    updatePlot(datax, datay3, 2);
+                    break;
+                default:
+                    break;
+                }
                 // under finishing.............
             }
             else
@@ -549,6 +596,22 @@ void MainWindow::readyread(){
                         << QString::number(runningTime) << " s under "
                         << QString(systemMode) << " mode.\n";
                     txtMessage->append(msg.join(""));
+                    switch (systemMode) {
+                    case 'd':
+                        datay1[1] = (datay1[1]*testSampleNumRecov[0]+runningTime)/(++testSampleNumRecov[0]);
+                        updatePlot(datax, datay1, 0);
+                        break;
+                    case 'h':
+                        datay2[1] = (datay2[1]*testSampleNumRecov[1]+runningTime)/(++testSampleNumRecov[1]);
+                        updatePlot(datax, datay2, 1);
+                        break;
+                    case 's':
+                        datay3[1] = (datay3[1]*testSampleNumRecov[2]+runningTime)/(++testSampleNumRecov[2]);
+                        updatePlot(datax, datay3, 2);
+                        break;
+                    default:
+                        break;
+                    }
                 }
                 // plot on figure .............
                 // under finishing.............
