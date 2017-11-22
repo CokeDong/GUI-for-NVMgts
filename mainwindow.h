@@ -30,6 +30,8 @@ public:
     void initPlot(int groupSize, int dataxSize, QVector<QString> itemName);
     void updatePlot(QVector<double> x, QVector<double> y, int barIndex);
 
+    void plotSettings(QCustomPlot* plot, double maxY);
+
     ~MainWindow();
 
 private:
@@ -38,9 +40,9 @@ private:
     QTextEdit *txtSystemStatus, *txtSearchResult, *txtMessage;
     QPushButton *bFile, *bSwitch, *bBatch, *bConn,*bSim,*bSearch,*bClean,*bClose;
     QLineEdit *searchText;
-    QCustomPlot *plotArea;
+    QCustomPlot *plotArea, *plotArea1;
     QFileDialog *fileDialog;
-    QVector<QCPBars*> bars;
+    QVector<QCPBars*> bars, bars1;
     QTcpSocket *cli_socket;
     QTimer *timer;
 

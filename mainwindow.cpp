@@ -9,6 +9,7 @@
 #include "qcustomplot.h"
 #include <QRadioButton>
 #include "QDebug"
+#include "QGridLayout"
 
 #define CEN_WIDGET_STYLE "background: #505050; color: white"
 #define CONSOLE_STYLE "border: 1px solid grey"
@@ -17,7 +18,7 @@ int numTrajSys=0,numPointSys=0,runningTaskType=-1,queryIDNow=-1;
 int chooseDataSize = 1;
 char chooseMode = 'h';
 char systemMode = 'h';
-QVector<double> datax = {1.5,3.5};
+QVector<double> datax = {2.5,2.5};
 QVector<double> datay1 = {0,0};
 QVector<double> datay2 = {0,0};
 QVector<double> datay3 = {0,0};
@@ -32,23 +33,27 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     setMinimumHeight(600);
+    setMinimumWidth(1000);
     cenWidget = new QWidget(this);
     cenWidget->setStyleSheet(CEN_WIDGET_STYLE);
     setCentralWidget(cenWidget);
 
     QGridLayout *cenLayout = new QGridLayout;
     QHBoxLayout *setLayout = new QHBoxLayout;
-    QHBoxLayout *sizeLayout = new QHBoxLayout;
-    QHBoxLayout *modeLayout = new QHBoxLayout;
+//    QHBoxLayout *sizeLayout = new QHBoxLayout;
+//    QHBoxLayout *modeLayout = new QHBoxLayout;
+
+    QGridLayout *buttonGroupLayout = new QGridLayout;
+    QWidget *buttonGroupWidget = new QWidget(cenWidget);
 
     QWidget *settingsWidget = new QWidget(cenWidget);
     bFile = new QPushButton("Load File", settingsWidget);
     bSwitch = new QPushButton("Switch Mode", settingsWidget);
     bBatch = new QPushButton("Batch Query", settingsWidget);
-    bConn = new QPushButton("Connect", cenWidget);
-    bSim = new QPushButton("Start Demo", cenWidget);
+    bConn = new QPushButton("Connect", settingsWidget);
+    bSim = new QPushButton("Start Demo", settingsWidget);
     bSearch = new QPushButton("Single Range Query", cenWidget);
-    bClean = new QPushButton("Clean", cenWidget);
+    bClean = new QPushButton("Clean", settingsWidget);
     bClose = new QPushButton("Close", cenWidget);
 
 
@@ -58,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
     searchText->setPlaceholderText("Lon1,Lon2,Lat1,Lat2,");
 
     QVector<QString> inames = QVector<QString>() << "pure DRAM" << "DRAM-SCM" << "pure SCM";
-    initPlot(3, 2, inames);
+    initPlot(3, 1, inames);
 
     txtSystemStatus = new QTextEdit("txtSystemStatus", cenWidget);
     txtSystemStatus->setStyleSheet(CONSOLE_STYLE);
@@ -74,12 +79,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QButtonGroup *sizeButtonGroup = new QButtonGroup(this);
     sizeButtonGroup->setExclusive(true);
-    QWidget *sizeWidget = new QWidget(cenWidget);
+//    QWidget *sizeWidget = new QWidget(cenWidget);
     QRadioButton *radioButton[5];
     for(int i=1;i<=5;i++){
-        radioButton[i-1] = new QRadioButton(QString::number(i)+" GB DATA",sizeWidget);
+//        radioButton[i-1] = new QRadioButton(QString::number(i)+" GB DATA",sizeWidget);
+        //edit
+        radioButton[i-1] = new QRadioButton(QString::number(i)+"00MB DATA",buttonGroupWidget);
+        buttonGroupLayout->addWidget(radioButton[i-1], 1, 2*(i-1), 1, 2);
+        //end edit
+
         //radioButton[i-1]->setStyleSheet("padding :1px");
-        // sizeLayout->addWidget(radioButton[i-1]);
+//         sizeLayout->addWidget(radioButton[i-1]);
         connect(radioButton[i-1],&QRadioButton::clicked, [i](){
             chooseDataSize = i;
         });
@@ -87,21 +97,38 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     QButtonGroup *modeButtonGroup = new QButtonGroup(this);
     modeButtonGroup->setExclusive(true);
-    QWidget *modeWidget = new QWidget(cenWidget);
+//    QWidget *modeWidget = new QWidget(cenWidget);
     QRadioButton *radioButtonMode[3];
-    radioButtonMode[0] = new QRadioButton("pure DRAM", modeWidget);
+//    radioButtonMode[0] = new QRadioButton("pure DRAM", modeWidget);
+    //edit
+    radioButtonMode[0] = new QRadioButton("pure DRAM", buttonGroupWidget);
+    buttonGroupLayout->addWidget(radioButtonMode[0], 0, 0, 1, 2);
+    //end edit
+
     //radioButtonMode[0]->setStyleSheet("padding :1px");
 
     connect(radioButtonMode[0],&QRadioButton::clicked, [](){
         chooseMode = 'd';
     });
-    radioButtonMode[1] = new QRadioButton("hybrid DRAM-NVM", modeWidget);
+//    radioButtonMode[1] = new QRadioButton("hybrid DRAM-NVM", modeWidget);
+    //edit
+    radioButtonMode[1] = new QRadioButton("hybrid DRAM-NVM", buttonGroupWidget);
+    buttonGroupLayout->addWidget(radioButtonMode[1], 0, 2, 1, 2);
+    //end edit
+
     //radioButtonMode[1]->setStyleSheet("padding :1px");
 
     connect(radioButtonMode[1],&QRadioButton::clicked, [](){
         chooseMode = 'h';
     });
-    radioButtonMode[2] = new QRadioButton("pure NVM", modeWidget);
+//    radioButtonMode[2] = new QRadioButton("pure NVM", modeWidget);
+    //edit
+    radioButtonMode[2] = new QRadioButton("pure NVM", buttonGroupWidget);
+    buttonGroupLayout->addWidget(radioButtonMode[2], 0, 4, 1, 2);
+    //end edit
+
+    buttonGroupWidget->setLayout(buttonGroupLayout);
+
     //radioButtonMode[2]->setStyleSheet("padding :1px");
 
     connect(radioButtonMode[2],&QRadioButton::clicked, [](){
@@ -115,8 +142,11 @@ MainWindow::MainWindow(QWidget *parent) :
     cenLayout->setColumnStretch(3, 1);
     cenLayout->setColumnStretch(4, 1);
     cenLayout->setColumnStretch(5, 1);
+    cenLayout->setColumnStretch(6, 1);
+    cenLayout->setColumnStretch(7, 1);
+    cenLayout->setColumnStretch(8, 1);
 
-    cenLayout->setRowStretch(0, 1);
+    cenLayout->setRowStretch(0, 0.3);
     cenLayout->setRowStretch(1, 1);
     cenLayout->setRowStretch(2, 1);
     cenLayout->setRowStretch(3, 1);
@@ -125,33 +155,39 @@ MainWindow::MainWindow(QWidget *parent) :
     cenLayout->setRowStretch(6, 0.3);
     cenLayout->setMargin(15);
 
-    cenLayout->addWidget(settingsWidget, 0, 0, 1, 3);
-    cenLayout->addWidget(bConn, 0, 3);
-    cenLayout->addWidget(bSim,0,4);
-    cenLayout->addWidget(bClean,0,5);
+    cenLayout->addWidget(settingsWidget, 0, 0, 1, 6);
+//    cenLayout->addWidget(bConn, 0, 3);
+//    cenLayout->addWidget(bSim,0, 4);
+//    cenLayout->addWidget(bClean,0, 5);
     cenLayout->addWidget(txtSystemStatus, 1, 0, 1, 3);
     cenLayout->addWidget(plotArea, 1, 3, 3, 3);
+    cenLayout->addWidget(plotArea1, 1, 6, 3, 3);
     cenLayout->addWidget(searchText, 2, 0, 1, 2);
     cenLayout->addWidget(bSearch, 2, 2);
     cenLayout->addWidget(txtSearchResult, 3, 0, 1, 3);
-    cenLayout->addWidget(txtMessage, 4, 0, 1, 6);
-    cenLayout->addWidget(sizeWidget, 5 ,0, 1, 5);
-    cenLayout->addWidget(bClose,5,5);
-    cenLayout->addWidget(modeWidget, 6 ,0, 1, 6);
+    cenLayout->addWidget(txtMessage, 4, 0, 1, 9);
+    cenLayout->addWidget(buttonGroupWidget, 5, 0, 2, 9);
+//    cenLayout->addWidget(sizeWidget, 5 ,0, 1, 9);
+    cenLayout->addWidget(bClose, 5, 8);
+//    cenLayout->addWidget(modeWidget, 6 ,0, 1, 9);
 
     cenWidget->setLayout(cenLayout);
     settingsWidget->setLayout(setLayout);
     setLayout->addWidget(bFile);
     setLayout->addWidget(bSwitch);
     setLayout->addWidget(bBatch);
-    sizeWidget->setLayout(sizeLayout);
-    for(int i=1;i<=5;i++){
-        cenLayout->addWidget(radioButton[i-1]);
-    }
-    modeWidget->setLayout(modeLayout);
-    modeLayout->addWidget(radioButtonMode[0]);
-    modeLayout->addWidget(radioButtonMode[1]);
-    modeLayout->addWidget(radioButtonMode[2]);
+    setLayout->addWidget(bConn);
+    setLayout->addWidget(bSim);
+    setLayout->addWidget(bClean);
+//    sizeWidget->setLayout(sizeLayout);
+//    for(int i=1;i<=5;i++){
+//        cenLayout->addWidget(radioButton[i-1]);
+//    }
+//    modeLayout->addWidget(radioButtonMode[0]);
+//    modeLayout->addWidget(radioButtonMode[1]);
+//    modeLayout->addWidget(radioButtonMode[2]);
+//    modeWidget->setLayout(modeLayout);
+
 
 
     connect(bFile, SIGNAL(clicked()), this, SLOT(fileBtnOnClick()));
@@ -175,22 +211,73 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this->timer,SIGNAL(timeout()),this,SLOT(flushState()));
 }
 
+void MainWindow:: plotSettings(QCustomPlot* plot, double maxY)
+{
+    // move bars above graphs and grid below bars:
+    plot->addLayer("abovemain", plot->layer("main"), QCustomPlot::limAbove);
+    plot->addLayer("belowmain", plot->layer("main"), QCustomPlot::limBelow);
+    plot->xAxis->grid()->setLayer("belowmain");
+    plot->yAxis->grid()->setLayer("belowmain");
+
+    // set some pens, brushes and backgrounds:
+    plot->xAxis->setBasePen(QPen(Qt::white, 1));
+    plot->yAxis->setBasePen(QPen(Qt::white, 1));
+    plot->xAxis->setTickPen(QPen(Qt::white, 1));
+    plot->yAxis->setTickPen(QPen(Qt::white, 1));
+    plot->xAxis->setSubTickPen(QPen(Qt::white, 1));
+    plot->yAxis->setSubTickPen(QPen(Qt::white, 1));
+    plot->xAxis->setTickLabelColor(Qt::white);
+    plot->yAxis->setTickLabelColor(Qt::white);
+    plot->xAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
+    plot->yAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
+    plot->xAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
+    plot->yAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
+    plot->xAxis->grid()->setSubGridVisible(true);
+    plot->yAxis->grid()->setSubGridVisible(true);
+    plot->xAxis->grid()->setZeroLinePen(Qt::NoPen);
+    plot->yAxis->grid()->setZeroLinePen(Qt::NoPen);
+    plot->xAxis->setUpperEnding(QCPLineEnding::esSpikeArrow);
+    plot->yAxis->setUpperEnding(QCPLineEnding::esSpikeArrow);
+    QLinearGradient plotGradient;
+    plotGradient.setStart(0, 0);
+    plotGradient.setFinalStop(0, 350);
+    plotGradient.setColorAt(0, QColor(80, 80, 80));
+    plotGradient.setColorAt(1, QColor(50, 50, 50));
+    plot->setBackground(plotGradient);
+    QLinearGradient axisRectGradient;
+    axisRectGradient.setStart(0, 0);
+    axisRectGradient.setFinalStop(0, 350);
+    axisRectGradient.setColorAt(0, QColor(80, 80, 80));
+    axisRectGradient.setColorAt(1, QColor(30, 30, 30));
+    plot->axisRect()->setBackground(axisRectGradient);
+
+    plot->rescaleAxes();
+
+    //Set Axis Range
+    plot->xAxis->setRange(0, 5);
+    plot->yAxis->setRange(0, maxY);
+}
+
 void MainWindow:: initPlot(int groupSize, int dataxSize, QVector<QString> itemName)
 {
+    // group size is the num of
     // prepare data:
     int i = 0;
     plotArea = new QCustomPlot(cenWidget);
+    plotArea1 = new QCustomPlot(cenWidget);
     // preset color R,G,B,transparency.
     // ONLY 2 BAR COLOR ARE SPECIFIED. ADD YOUR OWN COLOR IF YOUR GROUP SIZE IS LARGER THAN 2.
-    QVector<int> R = QVector<int>() << 10 << 10 << 10;
-    QVector<int> G = QVector<int>() << 140 << 100 << 60;
-    QVector<int> B = QVector<int>() << 70 << 50 << 30;
-    QVector<int> T = QVector<int>() << 160 << 70<< 120;
+    QVector<int> R = QVector<int>() << 190 << 254 << 33;
+    QVector<int> G = QVector<int>() << 51 << 254 << 221;
+    QVector<int> B = QVector<int>() << 18 << 0 << 221;
+    QVector<int> T = QVector<int>() << 100 << 100 << 100;
 
     // create and configure plottables:
     QCPBarsGroup *group = new QCPBarsGroup(plotArea);
+    QCPBarsGroup *group1 = new QCPBarsGroup(plotArea1);
     bars = QVector<QCPBars*>(groupSize);
-    QCPBars *bar;
+    bars1 = QVector<QCPBars*>(groupSize);
+    QCPBars *bar, *bar1;
 
     for(i = 0; i < groupSize; i++)
     {
@@ -201,64 +288,47 @@ void MainWindow:: initPlot(int groupSize, int dataxSize, QVector<QString> itemNa
         bar->setBrush(QColor(R[i], G[i], B[i], T[i]));
         bar->setBarsGroup(group);
         bars[i] = bar;
+
+        bar1 = new QCPBars(plotArea1->xAxis, plotArea1->yAxis);
+        bar1->setWidth(2/(double)dataxSize/(double)groupSize);
+        bar1->setName(itemName[i]);
+        bar1->setPen(Qt::NoPen);
+        bar1->setBrush(QColor(R[i], G[i], B[i], T[i]));
+        bar1->setBarsGroup(group1);
+        bars1[i] = bar1;
     }
 
-    // move bars above graphs and grid below bars:
-    plotArea->addLayer("abovemain", plotArea->layer("main"), QCustomPlot::limAbove);
-    plotArea->addLayer("belowmain", plotArea->layer("main"), QCustomPlot::limBelow);
-    plotArea->xAxis->grid()->setLayer("belowmain");
-    plotArea->yAxis->grid()->setLayer("belowmain");
+    plotSettings(plotArea, 90);
+    plotSettings(plotArea1,10);
 
-    // set some pens, brushes and backgrounds:
-    plotArea->xAxis->setBasePen(QPen(Qt::white, 1));
-    plotArea->yAxis->setBasePen(QPen(Qt::white, 1));
-    plotArea->xAxis->setTickPen(QPen(Qt::white, 1));
-    plotArea->yAxis->setTickPen(QPen(Qt::white, 1));
-    plotArea->xAxis->setSubTickPen(QPen(Qt::white, 1));
-    plotArea->yAxis->setSubTickPen(QPen(Qt::white, 1));
-    plotArea->xAxis->setTickLabelColor(Qt::white);
-    plotArea->yAxis->setTickLabelColor(Qt::white);
-    plotArea->xAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
-    plotArea->yAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
-    plotArea->xAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
-    plotArea->yAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
-    plotArea->xAxis->grid()->setSubGridVisible(true);
-    plotArea->yAxis->grid()->setSubGridVisible(true);
-    plotArea->xAxis->grid()->setZeroLinePen(Qt::NoPen);
-    plotArea->yAxis->grid()->setZeroLinePen(Qt::NoPen);
-    plotArea->xAxis->setUpperEnding(QCPLineEnding::esSpikeArrow);
-    plotArea->yAxis->setUpperEnding(QCPLineEnding::esSpikeArrow);
-    QLinearGradient plotGradient;
-    plotGradient.setStart(0, 0);
-    plotGradient.setFinalStop(0, 350);
-    plotGradient.setColorAt(0, QColor(80, 80, 80));
-    plotGradient.setColorAt(1, QColor(50, 50, 50));
-    plotArea->setBackground(plotGradient);
-    QLinearGradient axisRectGradient;
-    axisRectGradient.setStart(0, 0);
-    axisRectGradient.setFinalStop(0, 350);
-    axisRectGradient.setColorAt(0, QColor(80, 80, 80));
-    axisRectGradient.setColorAt(1, QColor(30, 30, 30));
-    plotArea->axisRect()->setBackground(axisRectGradient);
 
-    plotArea->rescaleAxes();
-    //Set Axis Range
-    plotArea->xAxis->setRange(0, 5);
-    plotArea->yAxis->setRange(0, 70);
     QVector<double> ticks;
     QVector<QString> labels;
-    ticks << 1.5 << 3.5;
-    labels << "Batch" << "Recovery";
+    ticks << 2.5;
+    labels << "Batch";
     QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
     textTicker->addTicks(ticks,labels);
     plotArea->xAxis->setTicker(textTicker);
+    ticks[0] = 2.5;
+    labels[0] = "Recovery";
+    QSharedPointer<QCPAxisTickerText> textTicker1(new QCPAxisTickerText);
+    textTicker1->addTicks(ticks,labels);
+    plotArea1->xAxis->setTicker(textTicker1);
 }
 
 void MainWindow:: updatePlot(QVector<double> x, QVector<double> y, int barIndex)
 {
-    bars[barIndex]->setData(x, y);
+    QVector<double> xTemp,yTemp;
+    xTemp << x[0];
+    yTemp << y[0];
+    bars[barIndex]->setData(xTemp, yTemp);
+    xTemp[0] = x[1];
+    yTemp[0] = y[1];
+    bars1[barIndex]->setData(xTemp, yTemp);
     plotArea->legend->setVisible(true);
     plotArea->replot();
+    plotArea1->legend->setVisible(true);
+    plotArea1->replot();
 }
 
 //Slots
@@ -441,6 +511,7 @@ void MainWindow::readyread(){
                 {
                     break;
                 }
+                qDebug()<<"system mode:" << systemMode;
                 switch (systemMode) {
                 case 'd':
                     datay1[0] = (datay1[0]*testSampleNumBatch[0]+loadTime)/(++testSampleNumBatch[0]);
@@ -666,8 +737,8 @@ void MainWindow::flushState(){
     }
     // update this to text
     QStringList msg;
-    msg << "Number of Trajectories in NVM: "<<QString::number(numTrajSys)
-        << "\nNumber of Points in NVM: "<<QString::number(numPointSys)<< "\n";
+    msg << "Number of Trajectories in Mem: "<<QString::number(numTrajSys)
+        << "\nNumber of Points in Mem: "<<QString::number(numPointSys)<< "\n";
            switch (runningTaskType) {
    case -1:
            msg << "Status: Free.\n" ;
