@@ -501,7 +501,7 @@ void MainWindow::readyread(){
                 QStringList msg;
                 QStringList dataInTCPList = infos[1].split(':');
                 double loadTime = dataInTCPList[0].toDouble();
-                msg << "Batch Query is finished in" << QString::number(loadTime)<<"s.";
+                msg << "Batch Query is finished in " << QString::number(loadTime)<<" s.";
                 txtMessage->append(msg.join(""));
                 runningTaskType = -1;
                 // plot on figure .............
@@ -511,7 +511,7 @@ void MainWindow::readyread(){
                 {
                     break;
                 }
-                qDebug()<<"system mode:" << systemMode;
+                qDebug()<<"system mode: " << systemMode;
                 switch (systemMode) {
                 case 'd':
                     datay1[0] = (datay1[0]*testSampleNumBatch[0]+loadTime)/(++testSampleNumBatch[0]);
@@ -548,8 +548,11 @@ void MainWindow::readyread(){
                 out << allresult ;
                 out.flush();
                 file.close();
+                /*
                 msg << "Single Query is finished. Results are stored in file.";
                 txtMessage->append(msg.join(""));
+                */
+                txtSearchResult->setText(allresult);
                 runningTaskType = -1;
             }
             else
@@ -590,7 +593,7 @@ void MainWindow::readyread(){
                     break;
                 }
                 }
-                msg << "System is changed to" << modeName << "mode.";
+                msg << "System is changed to " << modeName << " mode.";
                 runningTaskType = -1;
                 txtMessage->append(msg.join(""));
             }
